@@ -9,9 +9,9 @@ import java.util.Calendar
 object NotificationScheduler {
 
     fun scheduleAll(context: Context) {
-        schedule(context, 8, 0, NotificationReceiver.MORNING)
-        schedule(context, 12, 0, NotificationReceiver.MIDDAY)
-        schedule(context, 19, 0, NotificationReceiver.EVENING)
+        schedule(context, 6, 0, NotificationReceiver.MORNING)
+        schedule(context, 14, 0, NotificationReceiver.MIDDAY)
+        schedule(context, 20, 0, NotificationReceiver.EVENING)
     }
 
     fun schedule(context: Context, hour: Int, minute: Int, requestCode: Int) {

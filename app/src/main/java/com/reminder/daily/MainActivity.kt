@@ -117,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                     NotificationReceiver.CHANNEL_ID,
                     "Tägliche Erinnerungen",
                     NotificationManager.IMPORTANCE_DEFAULT
-                ).apply { description = "Morgens (8:00), mittags (12:00), abends (19:00)" }
+                ).apply { description = "Morgens (6:00), mittags (14:00), abends (20:00)" }
             )
         }
     }
