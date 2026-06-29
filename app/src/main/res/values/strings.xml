@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Tägliche Erinnerungen</string>
+    <string name="add_todo">Aufgabe hinzufügen</string>
+    <string name="delete_todo">Aufgabe löschen</string>
+    <string name="empty_list">Keine Aufgaben vorhanden.\nTippe auf + um eine hinzuzufügen.</string>
+</resources>
