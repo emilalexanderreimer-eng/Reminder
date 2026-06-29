@@ -4,4 +4,20 @@
     <string name="add_todo">Aufgabe hinzufügen</string>
     <string name="delete_todo">Aufgabe löschen</string>
     <string name="empty_list">Keine Aufgaben vorhanden.\nTippe auf + um eine hinzuzufügen.</string>
+
+    <string name="auth_subtitle">Melde dich an, um eine geteilte To-Do-Liste zu nutzen.</string>
+    <string name="sign_in_with_google">Mit Google anmelden</string>
+
+    <string name="setup_title">Deine Liste einrichten</string>
+    <string name="setup_subtitle">Erstelle eine neue Liste oder tritt einer bestehenden bei.</string>
+    <string name="create_list_title">Neue Liste erstellen</string>
+    <string name="create_list_desc">Erstelle eine neue geteilte Liste und lade andere per Code ein.</string>
+    <string name="create_list_button">Neue Liste erstellen</string>
+    <string name="join_list_title">Bestehender Liste beitreten</string>
+    <string name="join_list_desc">Gib den 6-stelligen Code ein, den dir jemand gegeben hat.</string>
+    <string name="join_list_button">Beitreten</string>
+    <string name="list_code_hint">Code (z. B. AB3X7K)</string>
+
+    <string name="menu_show_code">Listen-Code anzeigen</string>
+    <string name="menu_sign_out">Abmelden</string>
 </resources>

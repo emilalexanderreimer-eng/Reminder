@@ -2,6 +2,7 @@ package com.reminder.daily.ui
 
 import android.graphics.Paint
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -19,28 +20,26 @@ class TodoAdapter(
 
         fun bind(todo: Todo) {
             binding.textTodoTitle.text = todo.title
+            binding.textAddedBy.text = "von ${todo.addedBy}"
+            binding.textAddedBy.visibility = if (todo.addedBy.isNotEmpty()) View.VISIBLE else View.GONE
             binding.checkboxTodo.isChecked = todo.isCompleted
 
+            val strikeFlag = Paint.STRIKE_THRU_TEXT_FLAG
             if (todo.isCompleted) {
-                binding.textTodoTitle.paintFlags =
-                    binding.textTodoTitle.paintFlags or Paint.STRIKE_THRU_TEXT_FLAG
-                binding.textTodoTitle.alpha = 0.5f
+                binding.textTodoTitle.paintFlags = binding.textTodoTitle.paintFlags or strikeFlag
+                binding.textTodoTitle.alpha = 0.45f
+                binding.textAddedBy.alpha = 0.45f
             } else {
-                binding.textTodoTitle.paintFlags =
-                    binding.textTodoTitle.paintFlags and Paint.STRIKE_THRU_TEXT_FLAG.inv()
+                binding.textTodoTitle.paintFlags = binding.textTodoTitle.paintFlags and strikeFlag.inv()
                 binding.textTodoTitle.alpha = 1.0f
+                binding.textAddedBy.alpha = 0.6f
             }
 
             binding.checkboxTodo.setOnCheckedChangeListener(null)
             binding.checkboxTodo.setOnCheckedChangeListener { _, isChecked ->
-                if (isChecked != todo.isCompleted) {
-                    onToggle(todo.copy(isCompleted = isChecked))
-                }
+                if (isChecked != todo.isCompleted) onToggle(todo.copy(isCompleted = isChecked))
             }
-
-            binding.buttonDelete.setOnClickListener {
-                onDelete(todo)
-            }
+            binding.buttonDelete.setOnClickListener { onDelete(todo) }
         }
     }
 
