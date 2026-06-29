@@ -9,13 +9,8 @@ import android.content.Intent
 import androidx.core.app.NotificationCompat
 import com.reminder.daily.MainActivity
 import com.reminder.daily.R
-import com.reminder.daily.data.FirestoreRepository
-import com.reminder.daily.data.Prefs
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import com.reminder.daily.data.AppDatabase
+import kotlinx.coroutines.runBlocking
 
 class NotificationReceiver : BroadcastReceiver() {
 
@@ -34,31 +29,19 @@ class NotificationReceiver : BroadcastReceiver() {
         val hour = intent.getIntExtra(EXTRA_HOUR, 8)
         val minute = intent.getIntExtra(EXTRA_MINUTE, 0)
 
-        // Reschedule for tomorrow
         NotificationScheduler.schedule(context, hour, minute, timeOfDay)
 
-        val listId = Prefs.getListId(context) ?: return
-
-        val pending = goAsync()
-        val scope = CoroutineScope(Dispatchers.IO + Job())
-        scope.launch {
-            try {
-                val count = FirestoreRepository(listId).getPendingCount()
-                if (count > 0) showNotification(context, timeOfDay, count)
-            } finally {
-                pending.finish()
-                scope.cancel()
-            }
+        val pendingCount = runBlocking {
+            AppDatabase.getDatabase(context).todoDao().getTotalPendingCount()
         }
-    }
+        if (pendingCount == 0) return
 
-    private fun showNotification(context: Context, timeOfDay: Int, count: Int) {
         val greeting = when (timeOfDay) {
             MORNING -> "Guten Morgen!"
             MIDDAY -> "Mittagserinnerung"
             else -> "Guten Abend!"
         }
-        val taskWord = if (count == 1) "Aufgabe" else "Aufgaben"
+        val taskWord = if (pendingCount == 1) "Aufgabe" else "Aufgaben"
 
         ensureNotificationChannel(context)
 
@@ -73,9 +56,7 @@ class NotificationReceiver : BroadcastReceiver() {
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(greeting)
-            .setContentText("Noch $count offene $taskWord in eurer Liste.")
-            .setStyle(NotificationCompat.BigTextStyle()
-                .bigText("Noch $count offene $taskWord in eurer Liste. Tippe um die Liste zu öffnen."))
+            .setContentText("Noch $pendingCount offene $taskWord auf deinen Listen.")
             .setContentIntent(openIntent)
             .setAutoCancel(true)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)

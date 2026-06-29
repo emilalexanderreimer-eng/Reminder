@@ -15,7 +15,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@color/colorPrimary"
             app:titleTextColor="@android:color/white"
-            app:title="@string/app_name" />
+            app:navigationIcon="@drawable/ic_arrow_back" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.recyclerview.widget.RecyclerView
@@ -32,7 +32,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="@string/empty_lists"
+        android:text="@string/empty_todos"
         android:textSize="16sp"
         android:textColor="@color/text_secondary"
         android:gravity="center"
@@ -45,7 +45,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:contentDescription="@string/add_list"
+        android:contentDescription="@string/add_todo"
         app:srcCompat="@drawable/ic_add"
         app:backgroundTint="@color/colorPrimary" />
 

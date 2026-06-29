@@ -7,8 +7,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import android.widget.EditText
 import android.widget.Toast
@@ -18,26 +16,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.google.firebase.auth.FirebaseAuth
-import com.reminder.daily.data.FirestoreRepository
-import com.reminder.daily.data.Prefs
+import com.reminder.daily.data.AppDatabase
+import com.reminder.daily.data.TodoList
 import com.reminder.daily.databinding.ActivityMainBinding
 import com.reminder.daily.notification.NotificationReceiver
 import com.reminder.daily.notification.NotificationScheduler
-import com.reminder.daily.ui.TodoAdapter
+import com.reminder.daily.ui.TodoListAdapter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
-    companion object {
-        const val EXTRA_NEW_LIST_CODE = "newListCode"
-    }
-
     private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: TodoAdapter
-    private lateinit var repo: FirestoreRepository
-    private val auth by lazy { FirebaseAuth.getInstance() }
+    private lateinit var adapter: TodoListAdapter
+    private val db by lazy { AppDatabase.getDatabase(this) }
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -47,119 +39,74 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        val listId = Prefs.getListId(this)
-        if (listId == null || auth.currentUser == null) {
-            startActivity(Intent(this, AuthActivity::class.java))
-            finish()
-            return
-        }
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         setSupportActionBar(binding.toolbar)
 
-        repo = FirestoreRepository(listId)
-
-        // Show code dialog when a new list was just created
-        intent.getStringExtra(EXTRA_NEW_LIST_CODE)?.let { showNewListCodeDialog(it) }
-
         setupRecyclerView()
         setupFab()
-        observeTodos()
+        observeLists()
         ensureNotificationChannel()
         requestNotificationPermissionAndSchedule()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.menu_main, menu)
-        return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean = when (item.itemId) {
-        R.id.action_show_code -> {
-            Prefs.getListId(this)?.let { showCodeDialog(it) }
-            true
-        }
-        R.id.action_sign_out -> {
-            showSignOutDialog()
-            true
-        }
-        else -> super.onOptionsItemSelected(item)
-    }
-
     private fun setupRecyclerView() {
-        adapter = TodoAdapter(
-            onToggle = { todo -> lifecycleScope.launch { repo.updateTodo(todo) } },
-            onDelete = { todo -> lifecycleScope.launch { repo.deleteTodo(todo) } }
+        adapter = TodoListAdapter(
+            onOpen = { item ->
+                startActivity(
+                    Intent(this, TodoActivity::class.java).apply {
+                        putExtra(TodoActivity.EXTRA_LIST_ID, item.todoList.id)
+                        putExtra(TodoActivity.EXTRA_LIST_NAME, item.todoList.name)
+                    }
+                )
+            },
+            onDelete = { item ->
+                AlertDialog.Builder(this)
+                    .setTitle("Liste löschen")
+                    .setMessage("\"${item.todoList.name}\" und alle Aufgaben darin löschen?")
+                    .setPositiveButton("Löschen") { _, _ ->
+                        lifecycleScope.launch { db.todoListDao().delete(item.todoList) }
+                    }
+                    .setNegativeButton("Abbrechen", null)
+                    .show()
+            }
         )
         binding.recyclerView.layoutManager = LinearLayoutManager(this)
         binding.recyclerView.adapter = adapter
     }
 
     private fun setupFab() {
-        binding.fabAddTodo.setOnClickListener { showAddTodoDialog() }
+        binding.fabAddTodo.setOnClickListener { showCreateListDialog() }
     }
 
-    private fun observeTodos() {
+    private fun observeLists() {
         lifecycleScope.launch {
-            repo.getTodos().collectLatest { todos ->
-                adapter.submitList(todos)
-                binding.textEmpty.visibility = if (todos.isEmpty()) View.VISIBLE else View.GONE
+            db.todoListDao().getAllListsWithCounts().collectLatest { lists ->
+                adapter.submitList(lists)
+                binding.textEmpty.visibility = if (lists.isEmpty()) View.VISIBLE else View.GONE
             }
         }
     }
 
-    private fun showAddTodoDialog() {
+    private fun showCreateListDialog() {
         val editText = EditText(this).apply {
-            hint = "Neue Aufgabe eingeben…"
+            hint = "Name der Liste…"
             setPadding(64, 32, 64, 16)
         }
         AlertDialog.Builder(this)
-            .setTitle("Neue Aufgabe")
+            .setTitle("Neue Liste")
             .setView(editText)
-            .setPositiveButton("Hinzufügen") { _, _ ->
-                val title = editText.text.toString().trim()
-                if (title.isNotEmpty()) {
-                    val name = auth.currentUser?.displayName ?: "Unbekannt"
-                    lifecycleScope.launch { repo.addTodo(title, name) }
+            .setPositiveButton("Erstellen") { _, _ ->
+                val name = editText.text.toString().trim()
+                if (name.isNotEmpty()) {
+                    lifecycleScope.launch { db.todoListDao().insert(TodoList(name = name)) }
                 } else {
-                    Toast.makeText(this, "Bitte einen Text eingeben", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Bitte einen Namen eingeben", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Abbrechen", null)
             .show()
             .also { editText.requestFocus() }
-    }
-
-    private fun showNewListCodeDialog(code: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Liste erstellt!")
-            .setMessage("Dein Code: $code\n\nTeile diesen Code mit deiner Mutter, damit sie der Liste beitreten kann.")
-            .setPositiveButton("OK", null)
-            .show()
-    }
-
-    private fun showCodeDialog(code: String) {
-        AlertDialog.Builder(this)
-            .setTitle("Listen-Code")
-            .setMessage("Code: $code\n\nMit diesem Code können andere der Liste beitreten.")
-            .setPositiveButton("OK", null)
-            .show()
-    }
-
-    private fun showSignOutDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Abmelden")
-            .setMessage("Möchtest du dich wirklich abmelden? Deine Liste bleibt gespeichert.")
-            .setPositiveButton("Abmelden") { _, _ ->
-                auth.signOut()
-                Prefs.setListId(this, "")
-                startActivity(Intent(this, AuthActivity::class.java))
-                finish()
-            }
-            .setNegativeButton("Abbrechen", null)
-            .show()
     }
 
     private fun ensureNotificationChannel() {

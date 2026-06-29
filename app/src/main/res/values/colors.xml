@@ -8,4 +8,5 @@
     <color name="text_primary">#212121</color>
     <color name="text_secondary">#9E9E9E</color>
     <color name="error">#E53935</color>
+    <color name="due_today">#F57C00</color>
 </resources>
