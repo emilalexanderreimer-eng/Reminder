@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "888922543938",
+    "project_id": "to-do-2537a",
+    "storage_bucket": "to-do-2537a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:888922543938:android:9ac38a19757d8e972a5adb",
+        "android_client_info": {
+          "package_name": "com.reminder.daily"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAkjUJv-hTU7tPVIp1HTXa4VcY0FgNfUEg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
